@@ -1,6 +1,7 @@
-#
-#edit password not working
-#filter to prevent a earlier existing alias or empty alias
+#proper shapping of all frames and graphic editting left
+#crypting not yet done 
+#few filters in edit password left
+#give a thought to login name change from saved data
 import wx,filehandlingmod
 from pyDes import *
        
@@ -32,7 +33,14 @@ class filters():
             dlg = wx.MessageDialog(s, 'Alias cannot be kept blank\nIt wil help your retrieve your password\nSelect one such that you can remember', 'Error', wx.OK|wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()
-        return 1
+            return 1
+    def editpassword_filter(self,a,b,c,t):
+        #new and old password cannot be the same
+        if t ==1 and a==b==c :
+                dlg = wx.MessageDialog(self, "The old password and new password cannot be same.", 'Error', wx.OK|wx.ICON_INFORMATION)
+                dlg.ShowModal()
+                dlg.Destroy()
+                return 1   
 
 #########################################################################################################################################################################
 
@@ -299,16 +307,22 @@ class editpass(wx.Frame):
         
     def update(self,e):
         s = (self.cb.GetValue())
-        if self.sb3.GetValue()==self.sb2.GetValue():
+        y = filters()
+        if y.editpassword_filter(self.sb1.GetValue,self.sb2.GetValue,self.sb3.GetValue,1) and self.sb3.GetValue()==self.sb2.GetValue():
             x = filehandlingmod.filehandling()
             temp = x.show_saved_password(s,self.user)
-            if len(temp)>=1:
+            if str(temp[0][1])== str(self.sb3.GetValue()) and len(temp)>=1:
                 x.save_editted_password(self.user,s,str(temp[0][1]),str(self.sb3.GetValue()))
                 self.Close()
+            else:
+                dlg = wx.MessageDialog(self, "The old password you entered does not match with the password saved in our database.\nPlease rectif!", 'Error', wx.OK|wx.ICON_INFORMATION)
+                dlg.ShowModal()
+                dlg.Destroy() 
         else:
-            dlg = wx.MessageDialog(self, "The new password you want to update is not same in above two places\nPlease rectify", 'Error', wx.OK|wx.ICON_INFORMATION)
+            dlg = wx.MessageDialog(self, "The new password you want to update is not same in above two places.\nPlease rectify!", 'Error', wx.OK|wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()        
+   
     def quit(self,e):
             self.Close()
 
@@ -422,7 +436,6 @@ class rpass(wx.Frame):
         self.st2.SetLabel(str(temp[0][1]))
         self.st2.SetFont(font)
         self.vsizer.Layout()
-        self.vsizer.Fit()        
         
     def close(self,e):
             self.Close()
