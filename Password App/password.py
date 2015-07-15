@@ -4,7 +4,7 @@
 #edit userid in main frame
 #delete some saved password feature
 # *************HIGHLY IMP FEATURE LEFT THAT AT A TIME ONLY ONE OF SAVE, EDIT , REVIEW FRAME SHUD BE ALLOWED TO OPEN ***************
-import wx,filehandlingmod
+import wx,filehandlingmod,pdb
        
 #########################################################################################################################################################################
 class filters():
@@ -26,33 +26,33 @@ class filters():
             dlg.ShowModal()
             dlg.Destroy()
         else : 
-            return 1
+            return True
 
     def save_new_password_filter(self,s,b):
-        #NON BLANK ALIAS CHECKER
+        #NON BLANK ALIAS CHECKER 
         if b == '' or b == ' '*(len(b)):
             dlg = wx.MessageDialog(s, 'Alias cannot be kept blank\nIt wil help your retrieve your password\nSelect one such that you can remember', 'Error', wx.OK|wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()
-        else: return 1
+        else: return True
 
     def duplicate_alias_filter(self,s,user,sb1):
         x = filehandlingmod.filehandling()
-        k = x.show_saved_alias(user)
+        k = x.show_saved_data("",user,False)
         if (sb1) in k:
             dlg = wx.MessageDialog(s, 'Alias you gave already exists in our database\nIt wil help your retrieve your password\nSelect one such that you can remember it and is unique', 'Error', wx.OK|wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()
         else:
-            return 1
+            return True
     def editpassword_filter(self,a,b,c,t):
         #new and old password cannot be the same
-        if t ==1 and a==b==c :
+        if t==1 and a==b==c :
                 dlg = wx.MessageDialog(self, "The old password and new password cannot be same.", 'Error', wx.OK|wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
         else:
-            return 1   
+            return True
 
 #########################################################################################################################################################################
 
@@ -105,7 +105,7 @@ class authentication(wx.Frame):
         self.userinfo()
         if  self.user_match() :
             t = main(None,"Welcome " + self.alluserinfo[self.current_user][0],self.current_user_name,self.current_user)
-            self.Close()
+            self.Destroy()
         else:
             self.st1 = wx.StaticText(self,-1,"Either of your credentials are wrong\n Kindly make changes and retry with login",(80,125),style = wx.ALIGN_CENTRE)
             
@@ -115,12 +115,12 @@ class authentication(wx.Frame):
         
     def user_match(self):
         t1,t2 = str(self.sb1.GetValue()),str(self.sb2.GetValue())
-        for i in range(len(self.alluserinfo)):
-            if t1 == str(self.alluserinfo[i][0]) and t2 == str(self.alluserinfo[i][1]):
+        for i,j in enumerate(self.alluserinfo):
+            if t1 == str(j[0]) and t2 == str(j[1]):
                 self.current_user = i
-                self.current_user_name = str(self.alluserinfo[i][0])
-                return 1;
-        return 0
+                self.current_user_name = str(j[0])
+                return True
+        return False
                 
     def user_reg(self,e):
         a = user_regestration(None,"Register yourself user")
@@ -130,21 +130,21 @@ class authentication(wx.Frame):
         k = dlg.ShowModal()
         dlg.Destroy()
         if k  == wx.ID_YES:
-            self.Close()
+            self.Destroy()
     
 ##########################################################################################################################################################################
 class main(wx.Frame):
 
     def __init__(self,parent,title,user,identity):
         wx.Frame.__init__(self,parent,title = title,size= (466,100))
-        panel = wx.Panel(self,-1)
+        self.panel = wx.Panel(self,-1)
 
         sizer1 = wx.BoxSizer(wx.HORIZONTAL)
-        #
-        self.b1 = wx.Button(panel,1,"Save password")
-        self.b2 = wx.Button(panel,1,"Retrieve password")
-        self.b3 = wx.Button(panel,1,"Edit password")
-        self.b4 = wx.Button(panel,1,"Exit")
+        
+        self.b1 = wx.Button(self.panel,1,"Save password")
+        self.b2 = wx.Button(self.panel,1,"Retrieve password")
+        self.b3 = wx.Button(self.panel,1,"Edit password")
+        self.b4 = wx.Button(self.panel,1,"Exit")
         
         sizer1.Add(self.b1,1,wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND,wx.ALL)
         sizer1.Add(self.b2,1,wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND,wx.ALL)
@@ -158,25 +158,25 @@ class main(wx.Frame):
 
         self.current_user_name = user
         self.current_user = identity 
-        panel.SetSizer(sizer1)
+        self.panel.SetSizer(sizer1)
         self.Centre()
         self.Show()
 
     def savenewpassword(self,e):
-        a = npass(None,"Save your password",self.current_user_name ,self.current_user + 1)
-        
+        self.panel.Disable()
+        a = npass(None,"Save your password",self.current_user_name ,self.current_user + 1,self.panel)
     def reviewpassword(self,e):
-        a = rpass(None,"Review your saved passwords",self.current_user_name ,self.current_user + 1)
-
+        self.panel.Disable()
+        a = rpass(None,"Review your saved passwords",self.current_user_name ,self.current_user + 1,self.panel)
     def editpassword(self,e):
-        a = editpass(None,"Edit your credentials",self.current_user_name ,self.current_user + 1)
-        
+        a = editpass(None,"Edit your credentials",self.current_user_name ,self.current_user + 1,self.panel)
+        self.panel.Disable()
     def quit(self,e):
         dlg = wx.MessageDialog(self, 'Are you sure you want to exit?', 'Confirmation', wx.YES_NO|wx.NO_DEFAULT|wx.STAY_ON_TOP|wx.ICON_QUESTION)
         k = dlg.ShowModal()
         dlg.Destroy()
         if k  == wx.ID_YES:
-            self.Close()
+            self.Destroy()
 
 ##########################################################################################################################################################################
 
@@ -226,16 +226,16 @@ class user_regestration(wx.Frame):
         x = filehandlingmod.filehandling()
         y = filters()
         if (y.newuser_filter(self,self.sb1.GetValue(),self.sb2.GetValue(),x)) :
-            x.save_new_user(self.sb1.GetValue(),self.sb2.GetValue())
-            self.Close()
+            x.save_new_entry(self.sb1.GetValue(),self.sb2.GetValue(),'','',True)
+            self.Destroy()
 
     def quit(self,e):
-        self.Close()
+        self.Destroy()
 
 ##########################################################################################################################################################################
 
 class editpass(wx.Frame):
-    def __init__(self,parent,title,user,identity):
+    def __init__(self,parent,title,user,identity,prev):
         wx.Frame.__init__(self,parent,title = title)
         panel = wx.Panel(self,-1)
 
@@ -249,7 +249,7 @@ class editpass(wx.Frame):
         self.identity = identity
 
         x=filehandlingmod.filehandling()
-        string = x.dropdown_options_in_rpass(self.user)
+        string = x.show_saved_data("",self.user,False)
 
         self.cb = wx.ComboBox(panel,-1,'Select the alias with which you saved your data',size = (290,-1),choices = string, style = wx.CB_DROPDOWN)  
         self.cb.Bind(wx.EVT_COMBOBOX,self.show)
@@ -287,8 +287,10 @@ class editpass(wx.Frame):
         
         self.user = user
         self.identity = identity
+        self.key = prev 
+
         self.x = filehandlingmod.filehandling() 
-        
+
         panel.SetSizer(vsizer1)
         vsizer1.SetSizeHints(self)
         self.Centre()
@@ -296,7 +298,7 @@ class editpass(wx.Frame):
         
     def show(self,e):
         s = (self.cb.GetValue())
-        t = self.x.show_saved_password(s,self.user)
+        t = self.x.show_saved_data(s,self.user,True)
         font = wx.Font(15,wx.ROMAN,wx.NORMAL,weight = wx.BOLD)
         self.stt2.SetLabel(str(t[0][0]))
         self.stt2.SetFont(font)
@@ -306,10 +308,11 @@ class editpass(wx.Frame):
         if s!='Select the alias with which you saved your data':
             y = filters()
             if y.editpassword_filter(self.sb1.GetValue,self.sb2.GetValue,self.sb3.GetValue,1) and self.sb3.GetValue()==self.sb2.GetValue():
-                temp = self.x.show_saved_password(s,self.user)
+                temp = self.x.show_saved_data(s,self.user,True)
                 if str(temp[0][1])== str(self.sb1.GetValue()) and len(temp)>=1:
                     self.x.save_editted_password(self.user,s,str(temp[0][1]),str(self.sb3.GetValue()))
-                    self.Close()
+                    self.key.Enable()
+                    self.Destroy()
                 else:
                     dlg = wx.MessageDialog(self, "The old password you entered does not match with the password saved in our database.\nPlease rectif!", 'Error', wx.OK|wx.ICON_INFORMATION)
                     dlg.ShowModal()
@@ -320,12 +323,13 @@ class editpass(wx.Frame):
                 dlg.Destroy()        
    
     def quit(self,e):
-            self.Close()
+        self.key.Enable()
+        self.Destroy()
 
 ##########################################################################################################################################################################
 
 class npass(wx.Frame):
-    def __init__(self,parent,title,user,identity):
+    def __init__(self,parent,title,user,identity,prev):
         wx.Frame.__init__(self,parent,title = title)
         panel = wx.Panel(self,-1)
 
@@ -369,7 +373,8 @@ class npass(wx.Frame):
         
         self.user = user
         self.identity = identity
-        
+        self.key = prev
+
         panel.SetSizer(vsizer1)
         vsizer1.SetSizeHints(self)
         self.Centre()
@@ -380,22 +385,24 @@ class npass(wx.Frame):
         y = filters()
         if (y.save_new_password_filter(self,self.sb1.GetValue())):
             if y.duplicate_alias_filter(self,self.user,self.sb1.GetValue()) :
-                x.save_new_password(self.user,self.sb1.GetValue(),self.sb2.GetValue(),self.sb3.GetValue())
-                self.Close()
+                x.save_new_entry(self.user,self.sb1.GetValue(),self.sb2.GetValue(),self.sb3.GetValue(),False)
+                self.key.Enable()
+                self.Destroy()
 
     def quit(self,e):
-            self.Close()
-
+        self.key.Enable()
+        self.Destroy()
+    
 ##########################################################################################################################################################################
 
 class rpass(wx.Frame):
-
-    def __init__(self,parent,title,user,identity):
+    def __init__(self,parent,title,user,identity,prev):
         wx.Frame.__init__(self,parent,title = title)
         self.panel = wx.Panel(self,-1)
 
         self.user = user
         self.identity = identity
+        self.key = prev
 
         x=filehandlingmod.filehandling()
         string = x.dropdown_options_in_rpass(self.user)
@@ -441,7 +448,7 @@ class rpass(wx.Frame):
         if s != 'Select the alias with which you saved your data':
             font = wx.Font(15,wx.ROMAN,wx.NORMAL,weight = wx.BOLD)
             x = filehandlingmod.filehandling()
-            temp = x.show_saved_password(s,self.user)
+            temp = x.show_saved_data(s,self.user,True)
             self.st1.SetLabel(str(temp[0][0]))
             self.st1.SetFont(font)
             self.st2.SetLabel(str(temp[0][1]))
@@ -453,7 +460,8 @@ class rpass(wx.Frame):
             self.Update()
 
     def close(self,e):
-            self.Close()
+        self.key.Enable()
+        self.Destroy()
 
 ##########################################################################################################################################################################
 ##########################################################################################################################################################################
