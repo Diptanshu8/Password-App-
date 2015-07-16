@@ -224,7 +224,10 @@ class user_regestration(wx.Frame):
 
     def save(self,e):
         x = filehandlingmod.filehandling()
-        y = filters()
+        if 'y' not in globals():
+            global y
+            y = filters()
+        
         if (y.newuser_filter(self,self.sb1.GetValue(),self.sb2.GetValue(),x)) :
             x.save_new_entry(self.sb1.GetValue(),self.sb2.GetValue(),'','',True)
             self.Destroy()
@@ -306,7 +309,10 @@ class editpass(wx.Frame):
     def update(self,e):
         s = (self.cb.GetValue())
         if s!='Select the alias with which you saved your data':
-            y = filters()
+            if y not in globals():
+                global y
+                y = filters()
+            
             if y.editpassword_filter(self.sb1.GetValue,self.sb2.GetValue,self.sb3.GetValue,1) and self.sb3.GetValue()==self.sb2.GetValue():
                 temp = self.x.show_saved_data(s,self.user,True)
                 if str(temp[0][1])== str(self.sb1.GetValue()) and len(temp)>=1:
@@ -382,7 +388,10 @@ class npass(wx.Frame):
 
     def save(self,e):
         x = filehandlingmod.filehandling()
-        y = filters()
+        if 'y' not in globals():
+            global y
+            y = filters()
+        
         if (y.save_new_password_filter(self,self.sb1.GetValue())):
             if y.duplicate_alias_filter(self,self.user,self.sb1.GetValue()) :
                 x.save_new_entry(self.user,self.sb1.GetValue(),self.sb2.GetValue(),self.sb3.GetValue(),False)
