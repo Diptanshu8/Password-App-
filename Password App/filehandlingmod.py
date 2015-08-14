@@ -1,9 +1,26 @@
 #FILEHANDLING MODULES
-import cryptingmod
+import getpass,os,platform
 class filehandling():
     def __init__(self):
-        self.a = 'C:\Users\DJ\Documents\pss.txt'
-        self.element = cryptingmod.cryptography()
+	if platform.system()=='Linux':
+		x=getpass.getuser()
+		path="/home/"+str(x)+"/Password_Database"
+		if not os.path.isdir(path):		
+			os.mkdir(path)
+        	self.a = path+'/pss.txt'
+		if not os.path.exists(self.a):		
+			f = open(self.a,'a')
+			f.close()
+	if platform.system()=='Windows':
+		x=getpass.getuser()
+		path="C:\Users"+str(\)+str(x)+"\Documents\Password_Database"
+		if not os.path.isdir(path):		
+			os.mkdir(path)
+        	self.a = path+'\pss.txt'
+		if not os.path.exists(self.a):		
+			f = open(self.a,'a')
+			f.close()
+        #self.element = cryptingmod.cryptography()
     
     def userinfo(self):
         f = open(self.a,'r')
